@@ -11,10 +11,10 @@ func main() {
 	bc.AddBlock("First Block")
 	bc.AddBlock("Second Block")
 
-	for _, block := range bc.Blocks {
-		fmt.Printf("PrevHash: %x\n", block.PreviousHash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %x\n", block.Hash)
+	for _, b := range bc.Blocks {
+		fmt.Printf("PrevHash: %x\n", b.PreviousHash)
+		fmt.Printf("Data: %s\n", b.Data)
+		fmt.Printf("Hash: %x\n", b.Hash)
 		fmt.Println()
 	}
 }
