@@ -1,9 +1,14 @@
 package main
 
-func main() {
-	bc := NewBlockchain()
-	defer bc.db.Close()
+import (
+	"goblockchain/block"
+	"goblockchain/cmd"
+)
 
-	cli := CLI{bc}
+func main() {
+	bc := block.NewBlockchain()
+	defer bc.Db.Close()
+
+	cli := cmd.CLI{bc}
 	cli.Run()
 }

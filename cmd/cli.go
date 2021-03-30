@@ -1,15 +1,16 @@
-package main
+package cmd
 
 import (
 	"flag"
 	"fmt"
+	"goblockchain/block"
 	"log"
 	"os"
 	"strconv"
 )
 
 type CLI struct {
-	bc *Blockchain
+	Bc *block.Blockchain
 }
 
 const usage = `
@@ -30,19 +31,19 @@ func (cli *CLI) validateArgs() {
 }
 
 func (cli *CLI) printChain() {
-	bci := cli.bc.Iterator()
+	bci := cli.Bc.Iterator()
 
 	for {
-		block := bci.Next()
+		b := bci.Next()
 
-		fmt.Printf("Prev. hash: %x\n", block.PreviousHash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		pow := NewProofOfWork(block)
+		fmt.Printf("Prev. hash: %x\n", b.PreviousHash)
+		fmt.Printf("Data: %s\n", b.Data)
+		fmt.Printf("Hash: %x\n", b.Hash)
+		pow := block.NewProofOfWork(b)
 		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 
-		if len(block.PreviousHash) == 0 {
+		if len(b.PreviousHash) == 0 {
 			break
 		}
 	}
@@ -77,7 +78,7 @@ func (cli *CLI) Run() {
 			addBlockCmd.Usage()
 			os.Exit(1)
 		}
-		cli.bc.AddBlock(*addBlockData)
+		cli.Bc.AddBlock(*addBlockData)
 	}
 
 	if printChainCmd.Parsed() {
