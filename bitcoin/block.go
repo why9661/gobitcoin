@@ -1,23 +1,24 @@
-package block
+package bitcoin
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"time"
 )
 
 type Block struct {
 	Timestamp    int64
-	Data         []byte
+	Transactions []*Transaction //will be replaced by the root hash of a merkle tree
 	PreviousHash []byte
 	Hash         []byte
 	Nonce        int
 }
 
-func NewBlock(data string, preHash []byte) *Block {
+func NewBlock(transactions []*Transaction, preHash []byte) *Block {
 	block := &Block{
 		Timestamp:    time.Now().Unix(),
-		Data:         []byte(data),
+		Transactions: transactions,
 		PreviousHash: preHash,
 		Hash:         []byte{},
 		Nonce:        0,
@@ -32,8 +33,8 @@ func NewBlock(data string, preHash []byte) *Block {
 	return block
 }
 
-func NewGenesisblock() *Block {
-	return NewBlock("Genesis Block", []byte{})
+func NewGenesisblock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
 func (b *Block) Serialize() []byte {
@@ -50,4 +51,16 @@ func DerializeBlock(b []byte) *Block {
 	decoder.Decode(&block)
 
 	return &block
+}
+
+func (b *Block) HashOfTx() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	return txHash[:]
 }

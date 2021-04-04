@@ -1,4 +1,4 @@
-package block
+package bitcoin
 
 import (
 	bolt "go.etcd.io/bbolt"
@@ -47,7 +47,7 @@ func (bc *Blockchain) AddBlock(data string) {
 	})
 }
 
-func NewBlockchain() *Blockchain {
+func NewBlockchain(address string) *Blockchain {
 	var tip []byte
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
@@ -59,7 +59,8 @@ func NewBlockchain() *Blockchain {
 
 		if b == nil {
 			log.Println("No existing blockchain found. Creating a new one...")
-			genesis := NewGenesisblock()
+			cbtx := NewCoinbaseTx(address, "coinbase tx")
+			genesis := NewGenesisblock(cbtx)
 
 			b, err := tx.CreateBucket([]byte(blocksBucket))
 			if err != nil {

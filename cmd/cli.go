@@ -3,19 +3,19 @@ package cmd
 import (
 	"flag"
 	"fmt"
-	"goblockchain/block"
+	"gobitcoin/bitcoin"
 	"log"
 	"os"
 	"strconv"
 )
 
 type CLI struct {
-	Bc *block.Blockchain
+	Bc *bitcoin.Blockchain
 }
 
 const usage = `
 Usage:
-  addblock -data BLOCK_DATA    add a block to the blockchain
+  addblock -data BLOCK_DATA    add a bitcoin to the blockchain
   printchain                   print all the blocks of the blockchain
 `
 
@@ -39,7 +39,7 @@ func (cli *CLI) printChain() {
 		fmt.Printf("Prev. hash: %x\n", b.PreviousHash)
 		fmt.Printf("Data: %s\n", b.Data)
 		fmt.Printf("Hash: %x\n", b.Hash)
-		pow := block.NewProofOfWork(b)
+		pow := bitcoin.NewProofOfWork(b)
 		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 

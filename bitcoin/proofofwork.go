@@ -1,4 +1,4 @@
-package block
+package bitcoin
 
 import (
 	"bytes"
@@ -31,7 +31,7 @@ func (pow *ProofOfWork) createData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PreviousHash,
-			pow.block.Data,
+			pow.block.HashOfTx(),
 			[]byte(strconv.FormatInt(pow.block.Timestamp, 10)),
 			[]byte(strconv.FormatInt(int64(targetBits), 10)),
 			[]byte(strconv.FormatInt(int64(nonce), 10)),

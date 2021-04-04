@@ -1,4 +1,4 @@
-module goblockchain
+module gobitcoin
 
 go 1.15
 
