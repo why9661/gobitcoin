@@ -1,18 +1,15 @@
-package bitcoin
+package base
 
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
+	"gobitcoin/utils"
+	"log"
 	"math"
 	"math/big"
-	"strconv"
 )
 
-const (
-	targetBits = 24 //first 24 bits must be 0
-	maxNonce   = math.MaxInt64
-)
+const targetBits = 24
 
 type ProofOfWork struct {
 	block  *Block
@@ -22,19 +19,20 @@ type ProofOfWork struct {
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
+
 	pow := &ProofOfWork{b, target}
 
 	return pow
 }
 
-func (pow *ProofOfWork) createData(nonce int) []byte {
+func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
-			pow.block.PreviousHash,
-			pow.block.HashOfTx(),
-			[]byte(strconv.FormatInt(pow.block.Timestamp, 10)),
-			[]byte(strconv.FormatInt(int64(targetBits), 10)),
-			[]byte(strconv.FormatInt(int64(nonce), 10)),
+			pow.block.PrevBlockHash,
+			pow.block.Data,
+			utils.IntToHex(pow.block.Timestamp),
+			utils.IntToHex(int64(targetBits)),
+			utils.IntToHex(int64(nonce)),
 		},
 		[]byte{},
 	)
@@ -47,22 +45,21 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	var hash [32]byte
 	nonce := 0
 
-	fmt.Printf("Current block \"%s\"\n", pow.block.Data)
+	log.Println("Mining block...")
 
-	for nonce < maxNonce {
-		data := pow.createData(nonce)
+	for nonce < math.MaxInt32 {
+		data := pow.prepareData(nonce)
 		hash = sha256.Sum256(data)
 		hashInt.SetBytes(hash[:])
 
 		if hashInt.Cmp(pow.target) == -1 {
-			fmt.Printf("\r%x", hash)
+			log.Println("Success!")
 			break
 		} else {
 			nonce++
 		}
-	}
 
-	fmt.Print("\n\n")
+	}
 
 	return nonce, hash[:]
 }
@@ -70,10 +67,9 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 func (pow *ProofOfWork) Validate() bool {
 	var hashInt big.Int
 
-	data := pow.createData(pow.block.Nonce)
+	data := pow.prepareData(pow.block.Nonce)
 	hash := sha256.Sum256(data)
 	hashInt.SetBytes(hash[:])
-
 	isValid := hashInt.Cmp(pow.target) == -1
 
 	return isValid

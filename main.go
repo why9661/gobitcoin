@@ -1,14 +1,14 @@
 package main
 
 import (
-	"goblockchain/block"
-	"goblockchain/cmd"
+	"gobitcoin/base"
+	"gobitcoin/cli"
 )
 
 func main() {
-	bc := block.NewBlockchain()
+	bc := base.NewBlockchain()
 	defer bc.Db.Close()
 
-	cli := cmd.CLI{bc}
-	cli.Run()
+	c := cli.CLI{bc}
+	c.Run()
 }
