@@ -3,57 +3,70 @@ package base
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 	"time"
 )
 
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int
+	Height        int
 }
 
-func NewBlock(data string, prevHash []byte) *Block {
-	block := &Block{
-		time.Now().Unix(),
-		[]byte(data),
-		prevHash,
-		[]byte{},
-		0,
-	}
+// NewBlock creates and returns Block
+func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
 
-	proofOfWork := NewProofOfWork(block)
-
-	nonce, hash := proofOfWork.Run()
-
+	block.Hash = hash[:]
 	block.Nonce = nonce
-	block.Hash = hash
 
 	return block
 }
 
-func NewGenesisBlock() *Block {
-	return NewBlock("Genesis Block", []byte{})
+// NewGenesisBlock creates and returns genesis Block
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{}, 0)
 }
 
+// HashTransactions returns a hash of the transactions in the block
+func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
+
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, tx.Serialize())
+	}
+	mTree := NewMerkleTree(transactions)
+
+	return mTree.RootNode.Data
+}
+
+// Serialize serializes the block
 func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
-	_ = encoder.Encode(b)
-	//if err != nil {
-	//	panic("Serialize block failed")
-	//}
+
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	return result.Bytes()
 }
 
-func Deserialize(b []byte) *Block {
+// DeserializeBlock deserializes a block
+func DeserializeBlock(d []byte) *Block {
 	var block Block
-	decoder := gob.NewDecoder(bytes.NewReader(b))
-	_ = decoder.Decode(&block)
-	//if err != nil {
-	//	panic("Deserialize block failed")
-	//}
+
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	return &block
 }
